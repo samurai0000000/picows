@@ -1,0 +1,81 @@
+# CMakeLists.txt
+#
+# Copyright (C) 2025, Charles Chiou
+
+cmake_minimum_required(VERSION 3.13)
+
+include(pico-sdk/external/pico_sdk_import.cmake)
+
+project(picows VERSION 1.0.0 LANGUAGES C CXX ASM)
+include(FreeRTOS_Kernel_import.cmake)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
+add_subdirectory(pico-plat)
+
+include_directories(${CMAKE_CURRENT_LIST_DIR})
+add_compile_options(-Wall -Wextra -Werror)
+add_compile_options(-g -O2)
+
+set(PICO_CXX_ENABLE_EXCEPTIONS 1)
+set(PICO_USE_STACK_GUARDS 1)
+
+pico_sdk_init()
+
+set(WHOAMI_OUTPUT)
+execute_process(
+  COMMAND whoami
+  OUTPUT_VARIABLE WHOAMI_OUTPUT
+  RESULT_VARIABLE WHOAMI_RESULT
+  ERROR_VARIABLE WHOAMI_ERROR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+set(HOSTNAME_OUTPUT)
+execute_process(
+  COMMAND hostname
+  OUTPUT_VARIABLE HOSTNAME_OUTPUT
+  RESULT_VARIABLE HOSTNAME_RESULT
+  ERROR_VARIABLE HOSTNAME_ERROR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+set(DATE_OUTPUT)
+execute_process(
+  COMMAND date "+%Y-%m-%d %H:%M:%S"
+  OUTPUT_VARIABLE DATE_OUTPUT
+  RESULT_VARIABLE DATE_RESULT
+  ERROR_VARIABLE DATE_ERROR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+execute_process(
+  COMMAND date "+%Y-%m-%d %H:%M:%S"
+  OUTPUT_VARIABLE DATE_OUTPUT
+  RESULT_VARIABLE DATE_RESULT
+  ERROR_VARIABLE DATE_ERROR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/version.h
+  @ONLY
+  )
+
+add_executable(picows
+  PicoWs.cxx
+  picows.cxx
+  )
+pico_enable_stdio_usb(picows 0)
+pico_enable_stdio_uart(picows 0)
+target_include_directories(picows PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(picows
+  pico_stdlib
+  tinyusb_device
+  tinyusb_board
+  hardware_adc
+  hardware_spi
+  hardware_i2c
+  pico_cyw43_arch_none
+  FreeRTOS-Kernel-Heap4
+  pico-plat
+  )
+pico_add_extra_outputs(picows)
